@@ -1,19 +1,12 @@
-const { Requester, Validator } = require('@chainlink/external-adapter')
-
-// Define custom error scenarios for the API.
-// Return true for the adapter to retry.
-const customError = (data) => {
-  if (data.Response === 'Error') return true
-  return false
-}
+const { Requester, Validator } = require('@chainlink/external-adapter');
+const sanityClient = require('@sanity/client')
 
 // Define custom parameters to be used by the adapter.
 // Extra parameters can be stated in the extra object,
 // with a Boolean value indicating whether or not they
 // should be required.
 const customParams = {
-  base: ['base', 'from', 'coin'],
-  quote: ['quote', 'to', 'market'],
+  userId: ["userId"],
   endpoint: false
 }
 
@@ -21,37 +14,25 @@ const createRequest = (input, callback) => {
   // The Validator helps you validate the Chainlink request data
   const validator = new Validator(callback, input, customParams)
   const jobRunID = validator.validated.id
-  const endpoint = validator.validated.data.endpoint || 'price'
-  const url = `https://min-api.cryptocompare.com/data/${endpoint}`
-  const fsym = validator.validated.data.base.toUpperCase()
-  const tsyms = validator.validated.data.quote.toUpperCase()
+  const userId = validator.validated.data.userId;
 
-  const params = {
-    fsym,
-    tsyms
-  }
 
-  // This is where you would add method and headers
-  // you can add method like GET or POST and add it to the config
-  // The default is GET requests
-  // method = 'get' 
-  // headers = 'headers.....'
-  const config = {
-    url,
-    params
-  }
+  const client = sanityClient({
+    projectId: process.env.PROJECT_ID , //'jo5awq67',
+    dataset: 'production',
+    apiVersion: '2021-04-27', // use current UTC date - see "specifying API version"!
+    token: process.env.API_TOKEN, //'sk6LafQBoX1qWHZrp4IlomQgDL7c51WKk1hSbsXWaU2c8WpVnOYNXrZYF0IYP5LBz1mdD9vUz6HSTuaeefyPWTGVhQEpCZfArezyW6xj8lNVZW7G5f6Yf8LPvzmVZWQArCiH7bCC72tF913ldPLRFivTLvHMbzBU4WKJD7SQ4xeAcEqBvJav', // or leave blank for unauthenticated usage
+    useCdn: false, // `false` if you want to ensure fresh data
+  })
 
-  // The Requester allows API calls be retry in case of timeout
-  // or connection failure
-  Requester.request(config, customError)
-    .then(response => {
-      // It's common practice to store the desired value at the top-level
-      // result key. This allows different adapters to be compatible with
-      // one another.
-      response.data.result = Requester.validateResultNumber(response.data, [tsyms])
-      callback(response.status, Requester.success(jobRunID, response))
-    })
-    .catch(error => {
+  //id of the document to fetch
+  client.getDocument(userId)
+  .then((user) => {
+    const {isTrue, name} = user;
+    const response = { data: { name, isTrue } };
+    callback(200, Requester.success(jobRunID, response))
+  })
+  .catch(error => {
       callback(500, Requester.errored(jobRunID, error))
     })
 }

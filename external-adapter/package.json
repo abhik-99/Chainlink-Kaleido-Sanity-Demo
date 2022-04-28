@@ -1,5 +1,5 @@
 {
-  "name": "EA-NodeJS-Template",
+  "name": "Sanity-to-Chainlink-Template",
   "version": "0.1.0",
   "author": "",
   "description": "",
@@ -9,7 +9,9 @@
     "start": "node app.js"
   },
   "dependencies": {
-    "@chainlink/external-adapter": "^0.2.3"
+    "@chainlink/external-adapter": "^0.2.3",
+    "@sanity/client": "^3.3.0",
+    "dotenv": "^16.0.0"
   },
   "devDependencies": {
     "body-parser": "^1.19.0",
