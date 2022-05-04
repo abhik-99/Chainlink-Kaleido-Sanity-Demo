@@ -15,9 +15,9 @@ contract APIConsumer is ChainlinkClient {
 
     constructor() {
         setPublicChainlinkToken();
-        oracle = 0x9904415Db0B70fDd242b6Fe835d2bBc155466e8e;
-        jobId = "69cf5186b05a4497be74f85236e8ba34";
-        fee = 0 * 10 ** 18; // (Varies by network and job)
+        oracle = 0xf8b64a4273F13C2521ACC715d3022b8Bd31e1bE8;
+        jobId = "b0d2dabdc38748f3b288ceb3bc1d826b";
+        fee = 1 * LINK_DIVISIBILITY; // (Varies by network and job)
     }
 
     
@@ -50,14 +50,17 @@ contract APIConsumer is ChainlinkClient {
     }
     
     /**
-     * Receive the response in the form of uint256
+     * Receive the response in the form of bool
      */ 
     function fulfill(bytes32 _requestId, bool _completed) public recordChainlinkFulfillment(_requestId)
     {
-        if(_completed)
+        if(_completed) {
             status = 1;
-        else
+        }
+        else {
             status = 2;
+        }
+            
     }
 
     // function withdrawLink() external {} - Implement a withdraw function to avoid locking your LINK in the contract
